@@ -283,7 +283,7 @@ MIT License - Bebas digunakan untuk tujuan pendidikan dan komersial.
 ## 👨‍💻 Support
 
 Untuk pertanyaan dan bug report:
-- Email: support@mentalhealthtracker.com
+- Email: denifirmansyah181003@gmail.com
 - GitHub Issues: [Link to repository]
 
 ## ⚠️ Disclaimer
