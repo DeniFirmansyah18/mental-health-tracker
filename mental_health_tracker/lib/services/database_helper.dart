@@ -39,7 +39,8 @@ class DatabaseHelper {
       mood_level $integerType,
       mood_emoji $textType,
       notes TEXT,
-      timestamp $textType
+      timestamp $textType,
+      UNIQUE(user_id, date)
     )
     ''');
 
@@ -92,7 +93,8 @@ class DatabaseHelper {
       steps $integerType,
       avg_heart_rate $realType,
       sleep_duration $realType,
-      timestamp $textType
+      timestamp $textType,
+      UNIQUE(user_id, date)
     )
     ''');
 
@@ -116,7 +118,11 @@ class DatabaseHelper {
   // MOOD ENTRIES
   Future<int> insertMoodEntry(Map<String, dynamic> entry) async {
     final db = await database;
-    return await db.insert('mood_entries', entry);
+    return await db.insert(
+      'mood_entries',
+      entry,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<Map<String, dynamic>>> getMoodEntries(String userId, {int? limit}) async {
@@ -165,7 +171,36 @@ class DatabaseHelper {
   // HEALTH DATA
   Future<int> insertHealthData(Map<String, dynamic> data) async {
     final db = await database;
-    return await db.insert('health_data', data);
+    return await db.insert(
+      'health_data',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<int> updateHealthData(int id, Map<String, dynamic> data) async {
+    final db = await database;
+    return await db.update(
+      'health_data',
+      data,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<Map<String, dynamic>?> getHealthDataByDate(String userId, String date) async {
+    final db = await database;
+    final results = await db.query(
+      'health_data',
+      where: 'user_id = ? AND date = ?',
+      whereArgs: [userId, date],
+      limit: 1,
+    );
+
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+    return null;
   }
 
   Future<List<Map<String, dynamic>>> getHealthData(String userId, {int? limit}) async {
@@ -193,6 +228,16 @@ class DatabaseHelper {
       whereArgs: [userId],
       orderBy: 'timestamp DESC',
       limit: limit,
+    );
+  }
+
+  // DELETE DATA (untuk testing/reset)
+  Future<int> deleteHealthData(String userId) async {
+    final db = await database;
+    return await db.delete(
+      'health_data',
+      where: 'user_id = ?',
+      whereArgs: [userId],
     );
   }
 
