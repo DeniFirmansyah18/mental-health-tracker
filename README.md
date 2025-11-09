@@ -161,7 +161,11 @@ Semua data disimpan di **SQLite Database lokal** dengan tabel:
 - Hasil asesmen terakhir
 
 #### Laporan Lengkap
-- **Pie Chart**: Distribusi tingkat stress (Rendah, Normal, Sedang, Tinggi)
+- **Spider/Radar Chart**: Distribusi tingkat stress (Rendah, Normal, Sedang, Tinggi)
+  - Visualisasi interaktif dalam bentuk polygon
+  - Area chart dengan warna ungu untuk menunjukkan distribusi
+  - 4 dimensi stress: Rendah, Normal, Sedang, dan Tinggi
+  - Persentase ditampilkan untuk setiap kategori
 - **Line Chart**: Kombinasi mood dan aktivitas fisik
 - **Riwayat Asesmen**: Timeline PHQ-9 dan GAD-7
 - **Insight & Korelasi**: 
@@ -191,20 +195,42 @@ Semua data disimpan di **SQLite Database lokal** dengan tabel:
 **Kapan Saja:**
 - Lihat dashboard untuk trend
 - Buka laporan lengkap untuk insight
+- Analisis spider chart untuk distribusi stress
 
 ### 3. Membaca Hasil
 
-**Tingkat Stress:**
-- 🟢 Rendah (0-25%): Kondisi mental baik
-- 🔵 Normal (25-50%): Kondisi stabil
-- 🟠 Sedang (50-75%): Perlu perhatian
-- 🔴 Tinggi (75-100%): Konsultasi profesional
+**Tingkat Stress (Spider Chart):**
+- 🟢 **Rendah (0-25%)**: Kondisi mental baik, terus pertahankan pola hidup sehat
+- 🔵 **Normal (25-50%)**: Kondisi stabil, monitoring rutin tetap diperlukan
+- 🟠 **Sedang (50-75%)**: Perlu perhatian lebih, tingkatkan self-care
+- 🔴 **Tinggi (75-100%)**: Segera konsultasi dengan profesional kesehatan mental
+
+**Interpretasi Spider Chart:**
+- Area yang lebih luas menunjukkan kategori dominan
+- Bentuk chart yang tidak seimbang menunjukkan fluktuasi stress
+- Chart yang merata menunjukkan kondisi yang lebih stabil
 
 **PHQ-9 & GAD-7:**
-- Minimal: Tidak perlu intervensi
-- Ringan: Self-care & monitoring
-- Sedang: Pertimbangkan konsultasi
-- Berat: Segera konsultasi profesional
+- **Minimal**: Tidak perlu intervensi, lanjutkan monitoring
+- **Ringan**: Self-care & monitoring berkala
+- **Sedang**: Pertimbangkan konsultasi dengan profesional
+- **Berat**: Segera konsultasi dengan psikolog atau psikiater
+
+## 🎨 Fitur Visualisasi
+
+### Spider/Radar Chart untuk Analisis Stress
+Aplikasi ini menggunakan spider chart (radar chart) untuk visualisasi yang lebih informatif:
+
+**Keunggulan:**
+- ✅ Menampilkan 4 dimensi stress secara bersamaan
+- ✅ Mudah membandingkan proporsi antar kategori
+- ✅ Visual yang menarik dan modern
+- ✅ Persentase real-time untuk setiap kategori
+
+**Cara Membaca:**
+1. Semakin luas area dalam kategori, semakin tinggi persentase kategori tersebut
+2. Perhatikan bentuk keseluruhan chart untuk melihat pola stress
+3. Gunakan legend di bawah chart untuk melihat nilai persentase detail
 
 ## 🔐 Privacy & Security
 
@@ -237,6 +263,13 @@ adb shell pm list packages | grep health
 3. Buka Health Connect → Refresh data source
 4. Kembali ke aplikasi → Sync ulang
 
+### Spider Chart Tidak Muncul
+
+1. Pastikan sudah ada data mood minimal 3 hari
+2. Isi kuesioner PHQ-9 dan GAD-7 untuk analisis yang lebih akurat
+3. Refresh halaman laporan dengan pull-to-refresh
+4. Jika masih bermasalah, restart aplikasi
+
 ### Build Error
 
 ```bash
@@ -254,27 +287,54 @@ flutter run
 - [ ] User authentication
 - [ ] Cloud backup
 - [ ] Sinkronisasi multi-device
-- [ ] Export data ke PDF
+- [ ] Export data ke PDF dengan spider chart
 
 ### Phase 3: Machine Learning
-- [ ] Prediksi episode depresi
+- [ ] Prediksi episode depresi berdasarkan pola spider chart
 - [ ] Rekomendasi personalized
-- [ ] Deteksi pola anomali
-- [ ] Chatbot support
+- [ ] Deteksi pola anomali dalam distribusi stress
+- [ ] Chatbot support dengan analisis visual
 
 ### Phase 4: Social Features
 - [ ] Support group
 - [ ] Professional consultation booking
 - [ ] Emergency contact system
-- [ ] Progress sharing (optional)
+- [ ] Progress sharing (optional) dengan visualisasi
+
+### Phase 5: Enhanced Visualization
+- [ ] Tambahan chart: Bar chart, Area chart
+- [ ] Perbandingan data antar periode (mingguan, bulanan)
+- [ ] Animasi pada spider chart
+- [ ] Interactive tooltip pada chart
 
 ## 📚 Referensi
 
 - [Flutter Documentation](https://docs.flutter.dev/)
 - [Health Package](https://pub.dev/packages/health)
+- [FL Chart Package](https://pub.dev/packages/fl_chart)
 - [PHQ-9 Questionnaire](https://www.phqscreeners.com/)
 - [GAD-7 Questionnaire](https://www.phqscreeners.com/)
 - [Health Connect Developer Guide](https://developer.android.com/health-and-fitness/guides/health-connect)
+- [Radar Chart Best Practices](https://www.data-to-viz.com/caveat/spider.html)
+
+## 📦 Dependencies
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  health: ^11.0.0
+  provider: ^6.1.1
+  sqflite: ^2.3.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  fl_chart: ^0.68.0  # Untuk Spider Chart dan visualisasi
+  intl: ^0.19.0
+  http: ^1.1.0
+  shared_preferences: ^2.2.2
+  permission_handler: ^11.0.1
+```
 
 ## 📄 License
 
@@ -290,6 +350,10 @@ Untuk pertanyaan dan bug report:
 
 Aplikasi ini adalah **alat bantu** untuk monitoring kesehatan mental, bukan pengganti diagnosis atau perawatan profesional. Jika Anda mengalami gejala serius, segera konsultasi dengan psikolog atau psikiater.
 
+Spider chart yang ditampilkan hanya untuk visualisasi dan tidak dapat digunakan sebagai diagnosis medis. Selalu konsultasikan kondisi kesehatan mental Anda dengan profesional yang berkompeten.
+
 ---
 
 **Selamat menggunakan Mental Health Tracker! 🧠💚**
+
+*Version 1.0.0 - Updated with Spider Chart Visualization*
