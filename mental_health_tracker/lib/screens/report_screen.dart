@@ -181,77 +181,128 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
-                  height: 200,
-                  child: PieChart(
-                    PieChartData(
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 40,
-                      sections: [
-                        PieChartSectionData(
-                          value: lowStress,
-                          title: '${lowStress.toStringAsFixed(1)}%',
-                          color: Colors.green,
-                          radius: 80,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                  height: 300,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      RadarChart(
+                        RadarChartData(
+                          radarShape: RadarShape.polygon,
+                          radarBorderData: const BorderSide(
+                            color: Colors.grey,
+                            width: 2,
                           ),
-                        ),
-                        PieChartSectionData(
-                          value: normalStress,
-                          title: '${normalStress.toStringAsFixed(1)}%',
-                          color: Colors.blue,
-                          radius: 80,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          gridBorderData: const BorderSide(
+                            color: Colors.grey,
+                            width: 1,
                           ),
-                        ),
-                        PieChartSectionData(
-                          value: moderateStress,
-                          title: '${moderateStress.toStringAsFixed(1)}%',
-                          color: Colors.orange,
-                          radius: 80,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          tickCount: 5,
+                          ticksTextStyle: const TextStyle(
+                            color: Colors.transparent,
+                            fontSize: 10,
                           ),
-                        ),
-                        PieChartSectionData(
-                          value: highStress,
-                          title: '${highStress.toStringAsFixed(1)}%',
-                          color: Colors.red,
-                          radius: 80,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          tickBorderData: const BorderSide(
+                            color: Colors.grey,
+                            width: 1,
                           ),
+                          getTitle: (index, angle) {
+                            const titles = ['Rendah', 'Normal', 'Sedang', 'Tinggi'];
+                            return RadarChartTitle(
+                              text: titles[index],
+                              angle: angle,
+                            );
+                          },
+                          titleTextStyle: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          titlePositionPercentageOffset: 0.2,
+                          dataSets: [
+                            RadarDataSet(
+                              fillColor: const Color(0xFF6B4EE6).withOpacity(0.3),
+                              borderColor: const Color(0xFF6B4EE6),
+                              borderWidth: 2.5,
+                              entryRadius: 5,
+                              dataEntries: [
+                                RadarEntry(value: lowStress),
+                                RadarEntry(value: normalStress),
+                                RadarEntry(value: moderateStress),
+                                RadarEntry(value: highStress),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _buildLegendItem('Rendah', Colors.green),
-                    _buildLegendItem('Normal', Colors.blue),
-                    _buildLegendItem('Sedang', Colors.orange),
-                    _buildLegendItem('Tinggi', Colors.red),
-                  ],
-                ),
+                _buildStressLegend(lowStress, normalStress, moderateStress, highStress),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStressLegend(double low, double normal, double moderate, double high) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildLegendItemWithValue('Rendah', Colors.green, low),
+            _buildLegendItemWithValue('Normal', Colors.blue, normal),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildLegendItemWithValue('Sedang', Colors.orange, moderate),
+            _buildLegendItemWithValue('Tinggi', Colors.red, high),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLegendItemWithValue(String label, Color color, double value) {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${value.toStringAsFixed(1)}%',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 
