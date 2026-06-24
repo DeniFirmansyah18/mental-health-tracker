@@ -103,6 +103,68 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     }
   }
 
+  Future<void> _syncHistoricalData() async {
+    final provider = context.read<HealthProvider>();
+    if (!provider.isAuthorized) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Berikan izin terlebih dahulu')),
+      );
+      return;
+    }
+
+    // Konfirmasi sebelum sinkronisasi (proses cukup lama)
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sinkronkan Riwayat 90 Hari?'),
+        content: const Text(
+          'Proses ini akan mengambil data dari Health Connect selama '
+          '90 hari ke belakang (termasuk April & Mei).\n\n'
+          'Proses bisa memakan waktu 1-3 menit. Jangan tutup aplikasi.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B4EE6),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Mulai Sinkronisasi'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await provider.syncHistoricalData(userId, days: 90);
+
+    if (mounted) {
+      if (provider.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Riwayat berhasil disinkronkan! '
+              '${provider.syncedDaysCount} hari data tersimpan.',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -327,6 +389,73 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          // ─── Tombol Riwayat 90 Hari ───────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: provider.isLoading ? null : _syncHistoricalData,
+              icon: provider.isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.restore, color: Color(0xFF6B4EE6)),
+              label: const Text(
+                'Sinkronkan Riwayat 90 Hari',
+                style: TextStyle(color: Color(0xFF6B4EE6)),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: Color(0xFF6B4EE6)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          // Progress bar saat sync historis sedang berjalan
+          if (provider.isLoading && provider.syncProgress > 0 && provider.syncProgress < 1) ...
+            [
+              const SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Mengambil data historis...',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      ),
+                      Text(
+                        '${(provider.syncProgress * 100).toInt()}%',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: provider.syncProgress,
+                      minHeight: 10,
+                      backgroundColor: Colors.grey[200],
+                      color: const Color(0xFF6B4EE6),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${provider.syncedDaysCount} hari berhasil disimpan',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
         ],
       ],
     );

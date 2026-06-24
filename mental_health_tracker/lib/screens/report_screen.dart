@@ -31,7 +31,7 @@ class _ReportScreenState extends State<ReportScreen> {
       moodProvider.loadMoodHistory(userId, limit: 14),
       assessmentProvider.loadPHQ9History(userId),
       assessmentProvider.loadGAD7History(userId),
-      healthProvider.loadWeeklyHealthData(userId),
+      healthProvider.loadReportHealthData(userId),
     ]);
   }
 
@@ -91,13 +91,24 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget _buildStressAnalysis() {
     return Consumer3<MoodProvider, HealthProvider, AssessmentProvider>(
       builder: (context, moodProvider, healthProvider, assessmentProvider, child) {
-        // Simulasi analisis stress berdasarkan data
+        // Gunakan data laporan multi-bulan (max 7 hari per bulan)
         final moodData = moodProvider.moodHistory;
-        final healthData = healthProvider.weeklyHealthData;
+        final healthData = healthProvider.reportHealthData;
         final phq9Data = assessmentProvider.phq9History;
         final gad7Data = assessmentProvider.gad7History;
 
-        if (moodData.isEmpty && healthData.isEmpty && phq9Data.isEmpty && gad7Data.isEmpty) {
+        // Hitung info bulan unik dalam data kesehatan
+        final uniqueMonths = healthData
+            .map((d) => (d['date'] as String).substring(0, 7))
+            .toSet();
+        final int totalDays = healthData.length;
+        final int monthCount = uniqueMonths.length;
+
+        // Tampilkan pesan jika belum cukup data
+        if (!healthProvider.hasEnoughReportData &&
+            moodData.isEmpty &&
+            phq9Data.isEmpty &&
+            gad7Data.isEmpty) {
           return Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -107,6 +118,52 @@ class _ReportScreenState extends State<ReportScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
+              ),
+            ),
+          );
+        }
+
+        // Pesan jika data kesehatan belum mencukupi
+        if (!healthProvider.hasEnoughReportData) {
+          final needed = monthCount <= 1 ? 7 : 14;
+          final hint = monthCount <= 1
+              ? 'Butuh minimal 7 hari data dalam satu bulan.'
+              : 'Data dari $monthCount bulan terdeteksi. Butuh total minimal 14 hari (7 hari per bulan).'
+                  ' Saat ini baru $totalDays hari.';
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const Icon(Icons.hourglass_bottom, size: 48, color: Colors.orange),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Data Fisiologis Belum Cukup',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    hint,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Data tersedia: $totalDays hari / Target: $needed hari',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Sinkronkan data Health Connect setiap hari\nagar laporan analisis dapat ditampilkan.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
+                ],
               ),
             ),
           );
@@ -171,9 +228,11 @@ class _ReportScreenState extends State<ReportScreen> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                const Text(
-                  'Distribusi Tingkat Stress 2 Minggu Terakhir',
-                  style: TextStyle(
+                Text(
+                  monthCount > 1
+                      ? 'Distribusi Tingkat Stress ($monthCount Bulan, $totalDays Hari)'
+                      : 'Distribusi Tingkat Stress $totalDays Hari Terakhir',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -331,7 +390,8 @@ class _ReportScreenState extends State<ReportScreen> {
     return Consumer2<MoodProvider, HealthProvider>(
       builder: (context, moodProvider, healthProvider, child) {
         final moodData = moodProvider.moodHistory.reversed.toList();
-        final healthData = healthProvider.weeklyHealthData.reversed.toList();
+        // Gunakan reportHealthData agar data bulan sebelumnya ikut ditampilkan
+        final healthData = healthProvider.reportHealthData;
 
         if (moodData.isEmpty && healthData.isEmpty) {
           return Card(
@@ -608,35 +668,52 @@ class _ReportScreenState extends State<ReportScreen> {
 
         // Analisis korelasi sederhana
         final moodData = moodProvider.moodHistory;
-        final healthData = healthProvider.weeklyHealthData;
+        // Gunakan reportHealthData agar insight mencakup data bulan-bulan sebelumnya
+        final healthData = healthProvider.reportHealthData;
 
-        if (moodData.length >= 3 && healthData.length >= 3) {
-          // Cek korelasi mood dengan langkah
-          final avgMood = moodData.take(7).map((m) => m['mood_level'] as int).reduce((a, b) => a + b) / 7;
-          final avgSteps = healthData.take(7).map((h) => h['steps'] as int).reduce((a, b) => a + b) / 7;
+        // ─── Insight dari data kesehatan (cukup minimal 1 hari) ───────────
+        if (healthData.isNotEmpty) {
+          final sampleHealth = healthData.take(7).toList();
+          final n = sampleHealth.length;
 
+          final avgSteps =
+              sampleHealth.map((h) => h['steps'] as int).reduce((a, b) => a + b) / n;
           if (avgSteps > 8000) {
             insights.add('✓ Aktivitas fisik Anda baik! Rata-rata ${avgSteps.toInt()} langkah per hari.');
-          } else {
-            insights.add('⚠ Tingkatkan aktivitas fisik. Target minimal 8.000 langkah/hari.');
+          } else if (avgSteps > 0) {
+            insights.add('⚠ Tingkatkan aktivitas fisik. Rata-rata ${avgSteps.toInt()} langkah/hari. Target minimal 8.000.');
           }
 
-          final avgSleep = healthData.take(7).map((h) => h['sleep_duration'] as double).reduce((a, b) => a + b) / 7;
+          final avgSleep = sampleHealth
+                  .map((h) => h['sleep_duration'] as double)
+                  .reduce((a, b) => a + b) /
+              n;
           if (avgSleep >= 7 && avgSleep <= 9) {
             insights.add('✓ Durasi tidur Anda ideal (${avgSleep.toStringAsFixed(1)} jam/malam).');
-          } else if (avgSleep < 7) {
+          } else if (avgSleep > 0 && avgSleep < 7) {
             insights.add('⚠ Tidur kurang dari 7 jam dapat mempengaruhi mood. Usahakan tidur 7-9 jam.');
-          } else {
+          } else if (avgSleep > 9) {
             insights.add('⚠ Tidur terlalu lama dapat menunjukkan masalah. Konsultasi jika perlu.');
           }
+        }
+
+        // ─── Insight dari data mood (cukup minimal 1 hari) ────────────────
+        if (moodData.isNotEmpty) {
+          final sampleMood = moodData.take(7).toList();
+          final nm = sampleMood.length;
+          final avgMood =
+              sampleMood.map((m) => m['mood_level'] as int).reduce((a, b) => a + b) / nm;
 
           if (avgMood >= 3.5) {
-            insights.add('✓ Mood Anda cenderung positif dalam 7 hari terakhir.');
-          } else if (avgMood < 2.5) {
+            insights.add('✓ Mood Anda cenderung positif dalam $nm hari terakhir.');
+          } else if (avgMood >= 2.5) {
+            insights.add('ℹ Mood Anda berada di level sedang. Perhatikan pola tidur dan aktivitas fisik.');
+          } else {
             insights.add('⚠ Mood Anda cenderung rendah. Pertimbangkan konsultasi profesional.');
           }
         }
 
+        // ─── Insight dari PHQ-9 (semua level skor) ────────────────────────
         final latestPHQ9 = assessmentProvider.phq9History.isNotEmpty
             ? assessmentProvider.phq9History.first
             : null;
@@ -647,18 +724,27 @@ class _ReportScreenState extends State<ReportScreen> {
         if (latestPHQ9 != null) {
           final score = latestPHQ9['total_score'] as int;
           if (score > 14) {
-            insights.add('⚠ Skor PHQ-9 menunjukkan gejala depresi sedang-berat. Sangat disarankan konsultasi psikolog/psikiater.');
+            insights.add('⚠ Skor PHQ-9 ($score) menunjukkan gejala depresi sedang-berat. Sangat disarankan konsultasi psikolog/psikiater.');
           } else if (score > 9) {
-            insights.add('⚠ Skor PHQ-9 menunjukkan gejala depresi sedang. Pertimbangkan konsultasi profesional.');
+            insights.add('⚠ Skor PHQ-9 ($score) menunjukkan gejala depresi sedang. Pertimbangkan konsultasi profesional.');
+          } else if (score > 4) {
+            insights.add('ℹ Skor PHQ-9 ($score) menunjukkan gejala depresi ringan. Pantau terus kondisi Anda.');
+          } else {
+            insights.add('✓ Skor PHQ-9 ($score) menunjukkan tidak ada gejala depresi yang signifikan.');
           }
         }
 
+        // ─── Insight dari GAD-7 (semua level skor) ────────────────────────
         if (latestGAD7 != null) {
           final score = latestGAD7['total_score'] as int;
           if (score > 14) {
-            insights.add('⚠ Skor GAD-7 menunjukkan kecemasan berat. Sangat disarankan konsultasi profesional.');
+            insights.add('⚠ Skor GAD-7 ($score) menunjukkan kecemasan berat. Sangat disarankan konsultasi profesional.');
           } else if (score > 9) {
-            insights.add('⚠ Skor GAD-7 menunjukkan kecemasan sedang. Pertimbangkan konsultasi profesional.');
+            insights.add('⚠ Skor GAD-7 ($score) menunjukkan kecemasan sedang. Pertimbangkan konsultasi profesional.');
+          } else if (score > 4) {
+            insights.add('ℹ Skor GAD-7 ($score) menunjukkan kecemasan ringan. Teknik relaksasi mungkin membantu.');
+          } else {
+            insights.add('✓ Skor GAD-7 ($score) menunjukkan tingkat kecemasan yang minimal.');
           }
         }
 

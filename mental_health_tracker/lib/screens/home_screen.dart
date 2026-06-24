@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/health_provider.dart';
 import '../providers/mood_provider.dart';
 import '../providers/assessment_provider.dart';
+import 'guide_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -377,6 +378,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         () {},
                   ),
                   _buildProfileMenuItem(
+                    Icons.menu_book_outlined,
+                    'Panduan Pengguna',
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const GuideScreen()),
+                        ),
+                    subtitle: 'Cara pakai app & Health Sync',
+                    highlight: true,
+                  ),
+                  _buildProfileMenuItem(
                     Icons.notifications_outlined,
                     'Notifikasi',
                         () {},
@@ -711,30 +722,64 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProfileMenuItem(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildProfileMenuItem(
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    String? subtitle,
+    bool highlight = false,
+  }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
+          color: highlight
+              ? const Color(0xFF6B4EE6).withOpacity(0.15)
+              : const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(12),
+          border: highlight
+              ? Border.all(color: const Color(0xFF6B4EE6).withOpacity(0.4))
+              : null,
         ),
         margin: const EdgeInsets.only(bottom: 12),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white70, size: 24),
+            Icon(
+              icon,
+              color: highlight ? const Color(0xFF6B4EE6) : Colors.white70,
+              size: 24,
+            ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: highlight ? const Color(0xFF9B7FF8) : Colors.white,
+                      fontSize: 16,
+                      fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                  if (subtitle != null) ...
+                    [
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey[600]),
+            Icon(Icons.chevron_right,
+                color: highlight ? const Color(0xFF6B4EE6) : Colors.grey[600]),
           ],
         ),
       ),
@@ -830,8 +875,23 @@ class HealthDetailScreen extends StatefulWidget {
 }
 
 class _HealthDetailScreenState extends State<HealthDetailScreen> {
-  int _selectedTab = 1;
+  late int _selectedYear;
+  late int _selectedMonth;
 
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedYear = now.year;
+    _selectedMonth = now.month;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<HealthProvider>();
+      provider.fetchAvailableMonths(widget.userId);
+      provider.loadMonthlyHealthData(
+          widget.userId, _selectedYear, _selectedMonth);
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -857,103 +917,126 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
       ),
       body: Consumer<HealthProvider>(
         builder: (context, provider, child) {
+          final data = provider.monthlyHealthData;
           return Column(
             children: [
-              // Bagian Statis (Tabs dan Date Picker)
+              // ─── Month Selector + Date Range ─────────────────────────────
               Container(
                 color: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Column(
                   children: [
-                    _buildTabButton('Hari', 0),
-                    _buildTabButton('Minggu', 1),
-                    _buildTabButton('Bulan', 2),
+                    // Tombol bulan
+                    GestureDetector(
+                      onTap: () => _showMonthPicker(context, provider),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${_getMonthName(_selectedMonth)} $_selectedYear',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.keyboard_arrow_down,
+                                color: Colors.white70, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Rentang tanggal data aktual
+                    Text(
+                      _getDateRangeText(data),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Rata-rata
+                    Text(
+                      _getAverageText(provider),
+                      style: TextStyle(
+                        color: _getIconColor().withOpacity(0.75),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
 
-              Container(
-                color: Colors.black,
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left, color: Colors.white),
-                      onPressed: () {},
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          _getDateRange(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _getAverageText(provider),
-                          style: TextStyle(
-                            color: _getIconColor().withOpacity(0.7),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, color: Colors.white),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-              ),
-
-              // Bagian yang Dapat Digulir: Grafik, Deskripsi, dan Daftar Harian
+              // ─── Scrollable content ───────────────────────────────────────
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // GRAFIK
-                      Container(
-                        color: Colors.black,
-                        padding: const EdgeInsets.all(16),
-                        // Berikan tinggi yang pasti
-                        height: 250,
-                        child: _buildDetailChart(provider),
-                      ),
-
-                      // DESKRIPSI
-                      Container(
-                        color: const Color(0xFF1E1E1E),
-                        padding: const EdgeInsets.all(20),
-                        child: Text(
-                          _getDescription(),
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-
-                      // DAFTAR HARIAN (Gunakan Column dengan map().toList() di dalam SingleChildScrollView)
-                      Container(
-                        color: Colors.black,
-                        padding: const EdgeInsets.all(16),
+                child: provider.isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white54))
+                    : SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: provider.weeklyHealthData
-                              .map((data) => _buildDailyItem(data))
-                              .toList(),
+                          children: [
+                            // GRAFIK
+                            Container(
+                              color: Colors.black,
+                              padding: const EdgeInsets.all(16),
+                              height: 250,
+                              child: _buildDetailChart(data),
+                            ),
+
+                            // DESKRIPSI
+                            Container(
+                              color: const Color(0xFF1E1E1E),
+                              padding: const EdgeInsets.all(20),
+                              child: Text(
+                                _getDescription(),
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 14,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+
+                            // DAFTAR HARIAN
+                            Container(
+                              color: Colors.black,
+                              padding: const EdgeInsets.all(16),
+                              child: data.isEmpty
+                                  ? Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(32),
+                                        child: Text(
+                                          'Tidak ada data untuk\n${_getMonthName(_selectedMonth)} $_selectedYear',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Colors.grey[500],
+                                              fontSize: 15),
+                                        ),
+                                      ),
+                                    )
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: data
+                                          .map((d) => _buildDailyItem(d))
+                                          .toList(),
+                                    ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
               ),
             ],
           );
@@ -962,30 +1045,92 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
     );
   }
 
-  Widget _buildTabButton(String label, int index) {
-    final isSelected = _selectedTab == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[600],
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 15,
+  // ─── Month Picker Dialog ──────────────────────────────────────────────────
+  void _showMonthPicker(BuildContext context, HealthProvider provider) {
+    final available = provider.availableMonths; // e.g. ["2026-05", "2026-04"]
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: const Color(0xFF1E1E1E),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Pilih Bulan',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (available.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(
+                      'Belum ada data tersimpan.',
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                  )
+                else
+                  ...available.map((ym) {
+                    final parts = ym.split('-');
+                    final y = int.parse(parts[0]);
+                    final m = int.parse(parts[1]);
+                    final isSelected =
+                        y == _selectedYear && m == _selectedMonth;
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        '${_getMonthName(m)} $y',
+                        style: TextStyle(
+                          color:
+                              isSelected ? _getIconColor() : Colors.white,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          fontSize: 16,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle,
+                              color: _getIconColor())
+                          : null,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() {
+                          _selectedYear = y;
+                          _selectedMonth = m;
+                        });
+                        provider.loadMonthlyHealthData(
+                            widget.userId, y, m);
+                      },
+                    );
+                  }),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text('Tutup',
+                        style: TextStyle(color: Colors.grey[400])),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildDetailChart(HealthProvider provider) {
-    final data = provider.weeklyHealthData;
+  Widget _buildDetailChart(List<Map<String, dynamic>> data) {
     if (data.isEmpty) {
       return Center(
         child: Text(
@@ -1008,41 +1153,44 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
     final maxValue = values.reduce((a, b) => a > b ? a : b);
     final color = _getIconColor();
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(7, (index) {
-        if (index >= values.length) {
-          return const SizedBox(width: 40);
-        }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final barWidth = (constraints.maxWidth / (values.length * 2 + 1))
+            .clamp(8.0, 40.0);
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List.generate(values.length, (index) {
+            final value = values[index];
+            final height = maxValue > 0 ? (value / maxValue) * 180 : 5.0;
+            final date = DateTime.parse(data[index]['date']);
+            final dayLabel = '${date.day}/${date.month}';
 
-        final value = values[index];
-        // Maksimum tinggi bar adalah 200 (sesuai tinggi Container di atas)
-        final height = maxValue > 0 ? (value / maxValue) * 180 : 5.0;
-        final dayLabels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              width: 40,
-              height: height,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              dayLabels[index],
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
-            ),
-          ],
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: barWidth,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(6)),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  dayLabel,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            );
+          }),
         );
-      }),
+      },
     );
   }
 
@@ -1123,29 +1271,56 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
     }
   }
 
-  String _getDateRange() {
-    return '12-18 Oktober';
-  }
 
   String _getAverageText(HealthProvider provider) {
-    final data = provider.weeklyHealthData;
-    if (data.isEmpty) return '';
+    final data = provider.monthlyHealthData;
+    if (data.isEmpty) return _getMonthName(_selectedMonth) + ' $_selectedYear';
 
     switch (widget.type) {
       case 'heart':
-        final avg = data.map((d) => d['avg_heart_rate'] as double).reduce((a, b) => a + b) / data.length;
+        final avg = data
+                .map((d) => d['avg_heart_rate'] as double)
+                .reduce((a, b) => a + b) /
+            data.length;
         return '${avg.toStringAsFixed(0)} bpm (rata-rata)';
       case 'steps':
-        final avg = data.map((d) => d['steps'] as int).reduce((a, b) => a + b) / data.length;
-        return '${avg.toStringAsFixed(0)} langkah';
+        final avg = data
+                .map((d) => (d['steps'] as int).toDouble())
+                .reduce((a, b) => a + b) /
+            data.length;
+        return '${avg.toStringAsFixed(0)} langkah/hari';
       case 'sleep':
-        final avg = data.map((d) => d['sleep_duration'] as double).reduce((a, b) => a + b) / data.length;
+        final avg =
+            data.map((d) => d['sleep_duration'] as double).reduce((a, b) => a + b) /
+                data.length;
         final hours = avg.floor();
         final minutes = ((avg % 1) * 60).floor();
         return 'Rata-rata $hours j $minutes m';
       default:
         return '';
     }
+  }
+
+  /// Menampilkan rentang tanggal aktual dari data yang tersedia.
+  /// Contoh: "1 – 14 Mei 2026" atau "Tidak ada data"
+  String _getDateRangeText(List<Map<String, dynamic>> data) {
+    if (data.isEmpty) {
+      return '${_getMonthName(_selectedMonth)} $_selectedYear — Belum ada data';
+    }
+    // Data sudah diurutkan ASC oleh query, ambil tanggal pertama & terakhir
+    final first = DateTime.parse(data.first['date']);
+    final last = DateTime.parse(data.last['date']);
+
+    if (first.day == last.day && first.month == last.month) {
+      // Hanya satu hari
+      return '${first.day} ${_getMonthName(first.month)} ${first.year}';
+    }
+    if (first.month == last.month) {
+      // Dalam satu bulan yang sama
+      return '${first.day} – ${last.day} ${_getMonthName(last.month)} ${last.year}';
+    }
+    // Lintas bulan (misalnya data bulan lengkap)
+    return '${first.day} ${_getMonthName(first.month)} – ${last.day} ${_getMonthName(last.month)} ${last.year}';
   }
 
   String _getDescription() {
@@ -1197,8 +1372,10 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
   }
 
   String _getMonthName(int month) {
-    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
     return months[month - 1];
   }
 }

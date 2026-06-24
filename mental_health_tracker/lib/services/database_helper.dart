@@ -214,6 +214,61 @@ class DatabaseHelper {
     );
   }
 
+  /// Returns all health data rows for a specific year and month.
+  Future<List<Map<String, dynamic>>> getHealthDataByMonth(
+      String userId, int year, int month) async {
+    final db = await database;
+    final monthStr =
+        '$year-${month.toString().padLeft(2, '0')}'; // e.g. "2026-05"
+    final results = await db.query(
+      'health_data',
+      where: "user_id = ? AND strftime('%Y-%m', date) = ?",
+      whereArgs: [userId, monthStr],
+      orderBy: 'date ASC',
+    );
+    return results;
+  }
+
+  /// Returns a list of distinct year-month strings (e.g. ["2026-05", "2026-04"])
+  /// for which health data exists for the given user.
+  Future<List<String>> getAvailableMonths(String userId) async {
+    final db = await database;
+    final results = await db.rawQuery(
+      "SELECT DISTINCT strftime('%Y-%m', date) AS ym FROM health_data "
+      "WHERE user_id = ? ORDER BY ym DESC",
+      [userId],
+    );
+    return results.map((r) => r['ym'] as String).toList();
+  }
+
+  /// Returns health data from multiple months, capped at [maxDaysPerMonth] most
+  /// recent days per month. Results are sorted oldest-to-newest across all months.
+  /// Used for the analysis/report screen so previous months' stored data is included.
+  Future<List<Map<String, dynamic>>> getHealthDataMultiMonth(
+      String userId, {
+      int maxDaysPerMonth = 7,
+  }) async {
+    final db = await database;
+    // Get all available months (newest first)
+    final months = await getAvailableMonths(userId);
+    final List<Map<String, dynamic>> combined = [];
+
+    for (final ym in months) {
+      // For each month take the [maxDaysPerMonth] most recent days
+      final rows = await db.rawQuery(
+        "SELECT * FROM health_data "
+        "WHERE user_id = ? AND strftime('%Y-%m', date) = ? "
+        "ORDER BY date DESC LIMIT ?",
+        [userId, ym, maxDaysPerMonth],
+      );
+      combined.addAll(rows);
+    }
+
+    // Sort combined list oldest-to-newest
+    combined.sort((a, b) => (a['date'] as String).compareTo(b['date'] as String));
+    return combined;
+  }
+
   // STRESS ANALYSIS
   Future<int> insertStressAnalysis(Map<String, dynamic> analysis) async {
     final db = await database;
