@@ -1,88 +1,122 @@
-# Mental Health Tracker - Panduan Implementasi
+<div align="center">
 
-## 📱 Deskripsi Aplikasi
+# 🧠 Mental Health Tracker
 
-Mental Health Tracker adalah aplikasi Android untuk memantau kesehatan mental dengan mengintegrasikan:
-- ✅ Input manual: Mood harian, kuesioner PHQ-9 & GAD-7
-- ✅ Data otomatis: Langkah, detak jantung, dan durasi tidur dari Health Connect
-- ✅ Analisis tingkat stress dengan visualisasi data
-- ✅ Laporan korelasi antara data subjektif dan objektif
+**A Flutter-based Android application for comprehensive mental health monitoring, combining validated clinical assessments with real-time physiological data from Google Health Connect.**
 
-## 🏗️ Struktur Folder Proyek
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.9+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![Health Connect](https://img.shields.io/badge/Health%20Connect-Integrated-4285F4?logo=google&logoColor=white)](https://developer.android.com/health-and-fitness/guides/health-connect)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/DeniFirmansyah18/mental-health-tracker)
 
-```
-mental_health_tracker/
-├── android/
-│   └── app/
-│       └── src/
-│           └── main/
-│               └── AndroidManifest.xml  
-├── lib/
-│   ├── main.dart                        
-│   ├── providers/
-│   │   ├── health_provider.dart         
-│   │   ├── assessment_provider.dart     
-│   │   └── mood_provider.dart           
-│   ├── screens/
-│   │   ├── home_screen.dart             
-│   │   ├── mood_input_screen.dart       
-│   │   ├── phq9_screen.dart             
-│   │   ├── gad7_screen.dart             
-│   │   ├── health_sync_screen.dart      
-│   │   └── report_screen.dart           
-│   └── services/
-│       └── database_helper.dart         
-└── pubspec.yaml                         
-```
+</div>
 
-## 🚀 Cara Instalasi
+---
 
-### 1. Persiapan
+## 📋 Table of Contents
+
+- [About the Project](#-about-the-project)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Usage Guide](#-usage-guide)
+- [Understanding Your Results](#-understanding-your-results)
+- [Privacy & Security](#-privacy--security)
+- [Troubleshooting](#-troubleshooting)
+- [Roadmap](#-roadmap)
+- [References](#-references)
+- [Disclaimer](#️-disclaimer)
+- [License](#-license)
+- [Contact](#-contact)
+
+---
+
+## 📖 About the Project
+
+Mental Health Tracker is an Android mobile application developed as a **thesis (skripsi) project**, designed to bridge the gap between clinical mental health assessment and everyday self-monitoring. It empowers users to track their psychological well-being through a combination of:
+
+- **Subjective inputs** — validated clinical questionnaires (PHQ-9, GAD-7) and daily mood logs
+- **Objective biometric data** — steps, heart rate, and sleep duration automatically synced from Google Health Connect
+- **Intelligent analytics** — correlation reports and a Spider/Radar Chart for multi-dimensional stress visualization
+
+The app stores all data **locally on the device**, ensuring complete user privacy with no external server dependency.
+
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|---|---|
+| 📊 **Daily Mood Tracking** | Log your daily mood using intuitive emoji-based input with optional notes |
+| 📝 **PHQ-9 Assessment** | Standardized 9-item Patient Health Questionnaire for depression screening |
+| 😰 **GAD-7 Assessment** | 7-item Generalized Anxiety Disorder scale for anxiety measurement |
+| 💓 **Health Connect Sync** | Auto-import steps, heart rate, and sleep data from connected wearables |
+| 🕸️ **Spider/Radar Chart** | Multi-dimensional stress distribution visualization across 4 severity levels |
+| 📈 **Trend Analysis** | 7-day mood & activity line chart for pattern recognition |
+| 🔗 **Correlation Reports** | Insight into relationships between physical activity, sleep, and mental health |
+| 💾 **Offline-First** | All data stored locally in SQLite — works without internet connectivity |
+
+---
+
+## 🛠 Tech Stack
+
+| Category | Technology |
+|---|---|
+| **Framework** | [Flutter](https://flutter.dev/) 3.x |
+| **Language** | [Dart](https://dart.dev/) 3.9+ |
+| **State Management** | [Provider](https://pub.dev/packages/provider) ^6.1.1 |
+| **Local Database** | [sqflite](https://pub.dev/packages/sqflite) ^2.3.0 |
+| **Health Data** | [health](https://pub.dev/packages/health) ^11.0.0 (Google Health Connect) |
+| **Data Visualization** | [fl_chart](https://pub.dev/packages/fl_chart) ^0.68.0 |
+| **Internationalization** | [intl](https://pub.dev/packages/intl) ^0.19.0 |
+| **Storage** | [shared_preferences](https://pub.dev/packages/shared_preferences) ^2.2.2 |
+| **Permissions** | [permission_handler](https://pub.dev/packages/permission_handler) ^11.0.1 |
+
+---
+
+## ✅ Prerequisites
+
+Before you begin, ensure your environment meets the following requirements:
+
+- **Flutter SDK** `3.x` or later → [Install Flutter](https://docs.flutter.dev/get-started/install)
+- **Dart SDK** `^3.9.2` (bundled with Flutter)
+- **Android Studio** or **VS Code** with Flutter/Dart plugins
+- **Android Device or Emulator** running **Android 8.0 (API 26)** or higher
+- **Google Health Connect** app installed on the target device ([Download on Play Store](https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata))
+- **Android SDK** with `compileSdkVersion 34` configured
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
 
 ```bash
-# Pastikan Flutter SDK terinstall
-flutter --version
-
-# Clone atau buat project baru
-flutter create mental_health_tracker
-cd mental_health_tracker
+git clone https://github.com/DeniFirmansyah18/mental-health-tracker.git
+cd mental-health-tracker/mental_health_tracker
 ```
 
-### 2. Copy File-File
-
-Salin semua file yang sudah dibuat ke dalam folder yang sesuai:
-
-1. **pubspec.yaml** → root folder
-2. **AndroidManifest.xml** → `android/app/src/main/AndroidManifest.xml`
-3. **main.dart** → `lib/main.dart`
-4. **database_helper.dart** → `lib/services/database_helper.dart`
-5. **health_provider.dart** → `lib/providers/health_provider.dart`
-6. **assessment_provider.dart** → `lib/providers/assessment_provider.dart`
-7. **mood_provider.dart** → `lib/providers/mood_provider.dart`
-8. **home_screen.dart** → `lib/screens/home_screen.dart`
-9. **mood_input_screen.dart** → `lib/screens/mood_input_screen.dart`
-10. **phq9_screen.dart** → `lib/screens/phq9_screen.dart`
-11. **gad7_screen.dart** → `lib/screens/gad7_screen.dart`
-12. **health_sync_screen.dart** → `lib/screens/health_sync_screen.dart`
-13. **report_screen.dart** → `lib/screens/report_screen.dart`
-
-### 3. Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 flutter pub get
 ```
 
-### 4. Konfigurasi Android
+### 3. Configure Android SDK Versions
 
-Edit file `android/app/build.gradle`:
+Ensure your `android/app/build.gradle` is configured as follows:
 
 ```gradle
 android {
-    compileSdkVersion 34  // Minimal SDK 34 untuk Health Connect
-    
+    compileSdkVersion 34  // Required for Health Connect
+
     defaultConfig {
         applicationId "com.example.mental_health_tracker"
-        minSdkVersion 26  // Android 8.0
+        minSdkVersion 26    // Android 8.0 minimum
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
@@ -90,270 +124,252 @@ android {
 }
 ```
 
-### 5. Install Health Connect di Device
+### 4. Set Up Google Health Connect
 
-Aplikasi memerlukan **Google Health Connect** terinstall di perangkat Android:
+The app requires **Google Health Connect** to be installed on the target device:
 
-1. Buka Google Play Store
-2. Cari "Health Connect by Google"
-3. Install aplikasi
-4. Buka Health Connect dan setup akun
+1. Open the Google Play Store on your Android device
+2. Search for **"Health Connect by Google"**
+3. Install and open it, then complete the initial account setup
+4. Grant the necessary data permissions when prompted by the app
 
-### 6. Build & Run
+### 5. Run the Application
 
 ```bash
-# Debug mode
+# Run in debug mode
 flutter run
 
-# Release APK
+# Build a release APK
 flutter build apk --release
 
-# Release App Bundle
+# Build an App Bundle (for Play Store submission)
 flutter build appbundle --release
 ```
 
-## 📋 Fitur Aplikasi
+---
 
-### A. INPUT DATA
+## 📁 Project Structure
 
-#### 1. Input Manual (Data Aktif)
+```
+mental_health_tracker/
+├── android/
+│   └── app/
+│       └── src/
+│           └── main/
+│               └── AndroidManifest.xml      # Health Connect permissions
+├── lib/
+│   ├── main.dart                            # Application entry point
+│   ├── providers/
+│   │   ├── health_provider.dart             # Health Connect data management
+│   │   ├── assessment_provider.dart         # PHQ-9 & GAD-7 logic
+│   │   └── mood_provider.dart               # Daily mood state management
+│   ├── screens/
+│   │   ├── home_screen.dart                 # Main dashboard
+│   │   ├── mood_input_screen.dart           # Daily mood logging
+│   │   ├── phq9_screen.dart                 # PHQ-9 questionnaire
+│   │   ├── gad7_screen.dart                 # GAD-7 questionnaire
+│   │   ├── health_sync_screen.dart          # Health Connect sync UI
+│   │   └── report_screen.dart               # Analytics & reports
+│   └── services/
+│       └── database_helper.dart             # SQLite CRUD operations
+├── test/                                    # Unit & widget tests
+├── pubspec.yaml                             # Project configuration & dependencies
+└── analysis_options.yaml                    # Dart linting rules
+```
 
-**Mood Harian**
-- Pilih emoji mood (😄 😊 😐 😔 😢)
-- Tambah catatan opsional
-- Simpan setiap hari
+---
 
-**PHQ-9 (Patient Health Questionnaire-9)**
-- 9 pertanyaan tentang gejala depresi
-- Skor 0-3 per pertanyaan
-- Total skor: 0-27
-- Kategori: Minimal (0-4), Ringan (5-9), Sedang (10-14), Sedang-Berat (15-19), Berat (20-27)
+## 📱 Usage Guide
 
-**GAD-7 (Generalized Anxiety Disorder-7)**
-- 7 pertanyaan tentang kecemasan
-- Skor 0-3 per pertanyaan
-- Total skor: 0-21
-- Kategori: Minimal (0-4), Ringan (5-9), Sedang (10-14), Berat (15-21)
+### First-Time Setup
 
-#### 2. Data Otomatis (Health Connect)
+1. Launch the application
+2. Navigate to the **"Sync"** tab
+3. Tap **"Grant Access"** and allow all Health Connect permissions
+4. Tap **"Sync Last 7 Days"** to import your historical health data
 
-Setelah memberikan izin, aplikasi otomatis membaca:
-- **Langkah Harian**: Total langkah per hari
-- **Detak Jantung**: Rata-rata BPM per hari
-- **Durasi Tidur**: Jam tidur per malam
+### Daily Workflow
 
-### B. PENYIMPANAN DATA
+| When | Action |
+|---|---|
+| **Morning** | Log your daily mood from the home screen |
+| **Any time** | Review the 7-day mood trend on the dashboard |
+| **Every 2 weeks** | Complete a PHQ-9 and GAD-7 assessment |
+| **Any time** | Open the Report screen to view the Spider Chart and insights |
 
-Semua data disimpan di **SQLite Database lokal** dengan tabel:
-- `mood_entries`: Data mood harian
-- `phq9_assessments`: Hasil PHQ-9
-- `gad7_assessments`: Hasil GAD-7
-- `health_data`: Data fisiologis dari Health Connect
-- `stress_analysis`: Hasil analisis (untuk future development)
+### Database Schema
 
-### C. ANALISIS & VISUALISASI
+All data is persisted locally in an SQLite database with the following tables:
 
-#### Dashboard Utama
-- Greeting card dengan status
-- Quick actions (Input Mood, PHQ-9, GAD-7, Sync)
-- Grafik mood 7 hari terakhir
-- Ringkasan data kesehatan hari ini
-- Hasil asesmen terakhir
+| Table | Contents |
+|---|---|
+| `mood_entries` | Daily mood logs with timestamps and notes |
+| `phq9_assessments` | PHQ-9 questionnaire results and scores |
+| `gad7_assessments` | GAD-7 questionnaire results and scores |
+| `health_data` | Biometric data synced from Health Connect |
+| `stress_analysis` | Computed stress analysis results *(future use)* |
 
-#### Laporan Lengkap
-- **Spider/Radar Chart**: Distribusi tingkat stress (Rendah, Normal, Sedang, Tinggi)
-  - Visualisasi interaktif dalam bentuk polygon
-  - Area chart dengan warna ungu untuk menunjukkan distribusi
-  - 4 dimensi stress: Rendah, Normal, Sedang, dan Tinggi
-  - Persentase ditampilkan untuk setiap kategori
-- **Line Chart**: Kombinasi mood dan aktivitas fisik
-- **Riwayat Asesmen**: Timeline PHQ-9 dan GAD-7
-- **Insight & Korelasi**: 
-  - Analisis pola tidur
-  - Evaluasi aktivitas fisik
-  - Rekomendasi berdasarkan data
+---
 
-## 📊 Cara Menggunakan Aplikasi
+## 📊 Understanding Your Results
 
-### 1. First Time Setup
+### PHQ-9 (Depression Screening)
 
-1. Buka aplikasi
-2. Tap "Sinkronisasi" → "Berikan Izin Akses"
-3. Izinkan akses ke Health Connect
-4. Tap "Sinkronkan 7 Hari Terakhir"
+| Score Range | Category | Recommended Action |
+|---|---|---|
+| 0 – 4 | **Minimal** | No intervention needed; continue monitoring |
+| 5 – 9 | **Mild** | Practice self-care; monitor regularly |
+| 10 – 14 | **Moderate** | Consider consulting a mental health professional |
+| 15 – 19 | **Moderately Severe** | Professional support is strongly recommended |
+| 20 – 27 | **Severe** | Seek immediate consultation with a psychologist or psychiatrist |
 
-### 2. Penggunaan Harian
+### GAD-7 (Anxiety Screening)
 
-**Pagi Hari:**
-- Input mood harian
-- Cek data kesehatan kemarin
+| Score Range | Category | Recommended Action |
+|---|---|---|
+| 0 – 4 | **Minimal** | No intervention needed; continue monitoring |
+| 5 – 9 | **Mild** | Practice self-care; monitor regularly |
+| 10 – 14 | **Moderate** | Consider consulting a mental health professional |
+| 15 – 21 | **Severe** | Seek immediate consultation with a professional |
 
-**Berkala (2 minggu sekali):**
-- Isi kuesioner PHQ-9
-- Isi kuesioner GAD-7
+### Spider Chart — Stress Distribution
 
-**Kapan Saja:**
-- Lihat dashboard untuk trend
-- Buka laporan lengkap untuk insight
-- Analisis spider chart untuk distribusi stress
+The Spider/Radar Chart visualizes your stress distribution across 4 dimensions simultaneously:
 
-### 3. Membaca Hasil
+| Level | Range | Interpretation |
+|---|---|---|
+| 🟢 **Low** | 0 – 25% | Good mental state; maintain healthy habits |
+| 🔵 **Normal** | 25 – 50% | Stable condition; continue routine monitoring |
+| 🟠 **Moderate** | 50 – 75% | Elevated stress; increase self-care activities |
+| 🔴 **High** | 75 – 100% | Consult a mental health professional promptly |
 
-**Tingkat Stress (Spider Chart):**
-- 🟢 **Rendah (0-25%)**: Kondisi mental baik, terus pertahankan pola hidup sehat
-- 🔵 **Normal (25-50%)**: Kondisi stabil, monitoring rutin tetap diperlukan
-- 🟠 **Sedang (50-75%)**: Perlu perhatian lebih, tingkatkan self-care
-- 🔴 **Tinggi (75-100%)**: Segera konsultasi dengan profesional kesehatan mental
+> **How to read the chart:** A wider area within a category indicates a higher proportion of that stress level. An uneven shape signals stress fluctuations, while a balanced shape suggests a more stable mental state.
 
-**Interpretasi Spider Chart:**
-- Area yang lebih luas menunjukkan kategori dominan
-- Bentuk chart yang tidak seimbang menunjukkan fluktuasi stress
-- Chart yang merata menunjukkan kondisi yang lebih stabil
-
-**PHQ-9 & GAD-7:**
-- **Minimal**: Tidak perlu intervensi, lanjutkan monitoring
-- **Ringan**: Self-care & monitoring berkala
-- **Sedang**: Pertimbangkan konsultasi dengan profesional
-- **Berat**: Segera konsultasi dengan psikolog atau psikiater
-
-## 🎨 Fitur Visualisasi
-
-### Spider/Radar Chart untuk Analisis Stress
-Aplikasi ini menggunakan spider chart (radar chart) untuk visualisasi yang lebih informatif:
-
-**Keunggulan:**
-- ✅ Menampilkan 4 dimensi stress secara bersamaan
-- ✅ Mudah membandingkan proporsi antar kategori
-- ✅ Visual yang menarik dan modern
-- ✅ Persentase real-time untuk setiap kategori
-
-**Cara Membaca:**
-1. Semakin luas area dalam kategori, semakin tinggi persentase kategori tersebut
-2. Perhatikan bentuk keseluruhan chart untuk melihat pola stress
-3. Gunakan legend di bawah chart untuk melihat nilai persentase detail
+---
 
 ## 🔐 Privacy & Security
 
-- ✅ Data disimpan **lokal** di device
-- ✅ Tidak ada data yang dikirim ke server tanpa izin
-- ✅ Health Connect menggunakan enkripsi Google
-- ✅ User memiliki kontrol penuh atas datanya
+- ✅ **Local Storage Only** — All personal and health data is stored exclusively on your device
+- ✅ **No External Transmission** — No data is sent to any remote server without explicit user action
+- ✅ **Google Encryption** — Health Connect data is encrypted at rest by Google's platform
+- ✅ **Full User Control** — You can revoke Health Connect permissions or delete all data at any time
+
+---
 
 ## 🐛 Troubleshooting
 
-### Health Connect Tidak Terdeteksi
+### Health Connect Not Detected
 
 ```bash
-# Pastikan Health Connect installed
+# Check if Health Connect is installed via ADB
 adb shell pm list packages | grep health
 
-# Jika tidak ada, install dari Play Store
+# If missing, install it from the Play Store
 ```
 
 ### Permission Denied
 
-1. Buka Settings → Apps → Mental Health Tracker
-2. Permissions → Allow all required permissions
-3. Restart aplikasi
+1. Open **Settings → Apps → Mental Health Tracker**
+2. Go to **Permissions** and grant all required permissions
+3. Restart the application
 
-### Data Tidak Tersinkronisasi
+### Data Not Syncing
 
-1. Pastikan Health Connect memiliki data
-2. Cek koneksi smartwatch/fitness tracker
-3. Buka Health Connect → Refresh data source
-4. Kembali ke aplikasi → Sync ulang
+1. Confirm that Google Health Connect contains data from your connected device
+2. Verify your smartwatch or fitness tracker is synced with Health Connect
+3. In Health Connect, tap **Refresh** on the data source
+4. Return to the app and initiate sync again
 
-### Spider Chart Tidak Muncul
+### Spider Chart Not Rendering
 
-1. Pastikan sudah ada data mood minimal 3 hari
-2. Isi kuesioner PHQ-9 dan GAD-7 untuk analisis yang lebih akurat
-3. Refresh halaman laporan dengan pull-to-refresh
-4. Jika masih bermasalah, restart aplikasi
+1. Ensure you have logged mood data for **at least 3 consecutive days**
+2. Complete at least one PHQ-9 and GAD-7 assessment for a full analysis
+3. Pull down on the Report screen to refresh
+4. If the issue persists, restart the application
 
-### Build Error
+### Build Errors
 
 ```bash
-# Clean build
+# Clean the build cache and reinstall dependencies
 flutter clean
 flutter pub get
 
-# Rebuild
+# Re-run the application
 flutter run
 ```
 
-## 🚀 Future Development
+---
 
-### Phase 2: Backend Integration
-- [ ] User authentication
-- [ ] Cloud backup
-- [ ] Sinkronisasi multi-device
-- [ ] Export data ke PDF dengan spider chart
+## 🗺 Roadmap
 
-### Phase 3: Machine Learning
-- [ ] Prediksi episode depresi berdasarkan pola spider chart
-- [ ] Rekomendasi personalized
-- [ ] Deteksi pola anomali dalam distribusi stress
-- [ ] Chatbot support dengan analisis visual
+### Phase 2 — Backend Integration
+- [ ] User authentication (OAuth 2.0)
+- [ ] Cloud backup and restore
+- [ ] Multi-device synchronization
+- [ ] Export reports to PDF (including Spider Chart)
 
-### Phase 4: Social Features
-- [ ] Support group
+### Phase 3 — Machine Learning
+- [ ] Predictive modeling for depression episode detection
+- [ ] Personalized recommendations based on behavioral patterns
+- [ ] Anomaly detection in stress distribution
+- [ ] AI-powered chatbot with mental health support
+
+### Phase 4 — Social & Professional Features
+- [ ] Peer support groups
 - [ ] Professional consultation booking
-- [ ] Emergency contact system
-- [ ] Progress sharing (optional) dengan visualisasi
+- [ ] Emergency contact integration
+- [ ] Optional progress sharing with privacy controls
 
-### Phase 5: Enhanced Visualization
-- [ ] Tambahan chart: Bar chart, Area chart
-- [ ] Perbandingan data antar periode (mingguan, bulanan)
-- [ ] Animasi pada spider chart
-- [ ] Interactive tooltip pada chart
-
-## 📚 Referensi
-
-- [Flutter Documentation](https://docs.flutter.dev/)
-- [Health Package](https://pub.dev/packages/health)
-- [FL Chart Package](https://pub.dev/packages/fl_chart)
-- [PHQ-9 Questionnaire](https://www.phqscreeners.com/)
-- [GAD-7 Questionnaire](https://www.phqscreeners.com/)
-- [Health Connect Developer Guide](https://developer.android.com/health-and-fitness/guides/health-connect)
-- [Radar Chart Best Practices](https://www.data-to-viz.com/caveat/spider.html)
-
-## 📦 Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.8
-  health: ^11.0.0
-  provider: ^6.1.1
-  sqflite: ^2.3.0
-  path_provider: ^2.1.1
-  path: ^1.8.3
-  fl_chart: ^0.68.0  # Untuk Spider Chart dan visualisasi
-  intl: ^0.19.0
-  http: ^1.1.0
-  shared_preferences: ^2.2.2
-  permission_handler: ^11.0.1
-```
-
-## 📄 License
-
-MIT License - Bebas digunakan untuk tujuan pendidikan dan komersial.
-
-## 👨‍💻 Support
-
-Untuk pertanyaan dan bug report:
-- Email: denifirmansyah181003@gmail.com
-- GitHub Issues: [Link to repository]
-
-## ⚠️ Disclaimer
-
-Aplikasi ini adalah **alat bantu** untuk monitoring kesehatan mental, bukan pengganti diagnosis atau perawatan profesional. Jika Anda mengalami gejala serius, segera konsultasi dengan psikolog atau psikiater.
-
-Spider chart yang ditampilkan hanya untuk visualisasi dan tidak dapat digunakan sebagai diagnosis medis. Selalu konsultasikan kondisi kesehatan mental Anda dengan profesional yang berkompeten.
+### Phase 5 — Enhanced Visualization
+- [ ] Additional chart types: Bar chart, Area chart
+- [ ] Cross-period comparison (weekly, monthly views)
+- [ ] Animated Spider Chart transitions
+- [ ] Interactive chart tooltips
 
 ---
 
-**Selamat menggunakan Mental Health Tracker! 🧠💚**
+## 📚 References
 
-*Version 1.0.0 - Updated with Spider Chart Visualization*
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [health Package (pub.dev)](https://pub.dev/packages/health)
+- [fl_chart Package (pub.dev)](https://pub.dev/packages/fl_chart)
+- [PHQ-9 Screener](https://www.phqscreeners.com/)
+- [GAD-7 Screener](https://www.phqscreeners.com/)
+- [Health Connect Developer Guide](https://developer.android.com/health-and-fitness/guides/health-connect)
+- [Radar/Spider Chart Best Practices — Data to Viz](https://www.data-to-viz.com/caveat/spider.html)
+
+---
+
+## ⚠️ Disclaimer
+
+> This application is a **self-monitoring tool** intended to assist users in tracking their mental health trends. It is **not a substitute** for professional medical diagnosis, clinical evaluation, or psychiatric treatment.
+>
+> If you are experiencing severe symptoms of depression, anxiety, or any other mental health condition, please seek immediate assistance from a licensed psychologist, psychiatrist, or mental health professional.
+>
+> The Spider Chart visualization is provided for informational purposes only and **cannot be used as a medical diagnosis**.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
+
+---
+
+## 📬 Contact
+
+**Deni Firmansyah**
+
+- 📧 Email: [denifirmansyah181003@gmail.com](mailto:denifirmansyah181003@gmail.com)
+- 🐙 GitHub: [@DeniFirmansyah18](https://github.com/DeniFirmansyah18)
+- 🐛 Bug Reports: [Open an Issue](https://github.com/DeniFirmansyah18/mental-health-tracker/issues)
+
+---
+
+<div align="center">
+
+**Made with ❤️ for a healthier mind**
+
+*Mental Health Tracker v1.0.0*
+
+</div>
